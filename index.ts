@@ -33,4 +33,4 @@ function createForwarder(baseUrl: string, axiosOptions: AxiosRequestConfig = {})
   };
 }
 
-export default createForwarder;
+module.exports = createForwarder;
