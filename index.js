@@ -32,4 +32,4 @@ function createForwarder(baseUrl, axiosOptions = {}) {
         }
     };
 }
-exports.default = createForwarder;
+exports = createForwarder;
