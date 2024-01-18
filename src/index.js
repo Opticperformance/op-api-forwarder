@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createForwarder = void 0;
 const axios_1 = __importDefault(require("axios"));
 function createForwarder(baseUrl, axiosOptions = {}) {
     return async (req, res) => {
@@ -33,4 +32,4 @@ function createForwarder(baseUrl, axiosOptions = {}) {
         }
     };
 }
-exports.createForwarder = createForwarder;
+module.exports = createForwarder;
