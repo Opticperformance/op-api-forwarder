@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, Method } from 'axios';
 import { Request, Response } from 'express';
 
-function createForwarder(baseUrl: string, axiosOptions: AxiosRequestConfig = {}) {
+function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestConfig = {}) {
   return async (req: Request, res: Response) => {
     try {
       const { method, url, body, params, headers } = req;
