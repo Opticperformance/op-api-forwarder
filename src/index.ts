@@ -6,10 +6,6 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
     try {
       const { method, url, body, params, headers } = req;
 
-      // Use URL class for proper URL handling
-      const base = baseUrl instanceof URL ? baseUrl : new URL(baseUrl as string);
-      const targetUrl = new URL(url, base);
-
       const mergedHeaders = {
         ...axiosOptions.headers,
         ...headers,
@@ -17,7 +13,7 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
 
       const mergedAxiosOptions: AxiosRequestConfig = {
         method: method as Method,
-        url: targetUrl.href, // Construct the URL properly
+        url: `${baseUrl}${url}`,
         headers: mergedHeaders,
         data: body,
         params,
