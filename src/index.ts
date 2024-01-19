@@ -17,7 +17,7 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
 
       const mergedAxiosOptions: AxiosRequestConfig = {
         method: method as Method,
-        url: targetUrl.pathname + targetUrl.search, // Construct the URL properly
+        url: targetUrl.href, // Construct the URL properly
         headers: mergedHeaders,
         data: body,
         params,

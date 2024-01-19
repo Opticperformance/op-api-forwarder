@@ -17,7 +17,7 @@ function createForwarder(baseUrl, axiosOptions = {}) {
             };
             const mergedAxiosOptions = {
                 method: method,
-                url: targetUrl.pathname + targetUrl.search,
+                url: targetUrl.href,
                 headers: mergedHeaders,
                 data: body,
                 params,
