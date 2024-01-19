@@ -9,21 +9,16 @@ function createForwarder(baseUrl, axiosOptions = {}) {
     return async (req, res) => {
         try {
             const { method, url, body, params, headers } = req;
-            const base = baseUrl instanceof URL ? baseUrl : new URL(baseUrl);
-            const targetUrl = new URL(url, base);
             const mergedHeaders = {
                 ...axiosOptions.headers,
                 ...headers,
             };
             const mergedAxiosOptions = {
                 method: method,
-                url: targetUrl.toString(),
+                url: `${baseUrl}${url}`,
                 headers: mergedHeaders,
                 data: body,
                 params,
-                paramsSerializer: params => {
-                    return new URLSearchParams(params).toString();
-                },
                 ...axiosOptions,
             };
             const axiosResponse = await (0, axios_1.default)(mergedAxiosOptions);
