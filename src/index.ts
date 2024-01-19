@@ -6,6 +6,10 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
     try {
       const { method, url, body, params, headers } = req;
 
+      // Use URL class for proper URL handling
+      const base = baseUrl instanceof URL ? baseUrl : new URL(baseUrl as string);
+      const targetUrl = new URL(url, base);
+
       const mergedHeaders = {
         ...axiosOptions.headers,
         ...headers,
@@ -13,10 +17,13 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
 
       const mergedAxiosOptions: AxiosRequestConfig = {
         method: method as Method,
-        url: `${baseUrl}${url}`,
+        url: targetUrl.pathname + targetUrl.search, // Construct the URL properly
         headers: mergedHeaders,
         data: body,
         params,
+        paramsSerializer: params => {
+          return new URLSearchParams(params).toString();
+        },
         ...axiosOptions, // Include any custom options provided by the user
       };
 
