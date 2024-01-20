@@ -1,36 +1,48 @@
 import axios, { AxiosRequestConfig, Method } from 'axios';
-import { Request, Response } from 'express';
+import { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'http';
 
 function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestConfig = {}) {
-  return async (req: Request, res: Response) => {
+  return async (req: IncomingMessage, res: ServerResponse) => {
     try {
-      const { method, url, body, params, headers } = req;
+      let requestData = '';
+      req.setEncoding('utf8');
 
-      const mergedHeaders = {
-        ...axiosOptions.headers,
-        ...headers,
-      };
+      req.on('data', (chunk) => {
+        requestData += chunk;
+      });
 
-      const mergedAxiosOptions: AxiosRequestConfig = {
-        method: method as Method,
-        url: `${baseUrl}${url}`,
-        headers: mergedHeaders,
-        data: body,
-        params,
-        paramsSerializer: params => {
-          return new URLSearchParams(params).toString();
-        },
-        ...axiosOptions, // Include any custom options provided by the user
-      };
+      req.on('end', async () => {
+        const { method, url, headers } = req;
+        const body = JSON.parse(requestData || '{}'); // Parse the request body
 
-      const axiosResponse = await axios(mergedAxiosOptions);
+        const mergedHeaders = {
+          ...axiosOptions.headers,
+          ...headers,
+        };
 
-      res.status(axiosResponse.status).json(axiosResponse.data);
+        const mergedAxiosOptions: AxiosRequestConfig = {
+          method: method as Method,
+          url: `${baseUrl}${url}`,
+          headers: mergedHeaders,
+          data: body,
+          ...axiosOptions, // Include any custom options provided by the user
+        };
+
+        const axiosResponse = await axios(mergedAxiosOptions);
+
+        res.writeHead(axiosResponse.status, axiosResponse.statusText, {
+          'Content-Type': 'application/json',
+          ...axiosResponse.headers,
+        } as OutgoingHttpHeaders);
+
+        res.end(JSON.stringify(axiosResponse.data));
+      });
     } catch (error: any) {
       console.error('Error forwarding request:', error.message);
-      res.status(500).json({ success: false, error: 'Internal Server Error' });
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: 'Internal Server Error' }));
     }
   };
 }
 
-export { createForwarder }
+export { createForwarder };

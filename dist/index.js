@@ -8,28 +8,37 @@ const axios_1 = __importDefault(require("axios"));
 function createForwarder(baseUrl, axiosOptions = {}) {
     return async (req, res) => {
         try {
-            const { method, url, body, params, headers } = req;
-            const mergedHeaders = {
-                ...axiosOptions.headers,
-                ...headers,
-            };
-            const mergedAxiosOptions = {
-                method: method,
-                url: `${baseUrl}${url}`,
-                headers: mergedHeaders,
-                data: body,
-                params,
-                paramsSerializer: params => {
-                    return new URLSearchParams(params).toString();
-                },
-                ...axiosOptions,
-            };
-            const axiosResponse = await (0, axios_1.default)(mergedAxiosOptions);
-            res.status(axiosResponse.status).json(axiosResponse.data);
+            let requestData = '';
+            req.setEncoding('utf8');
+            req.on('data', (chunk) => {
+                requestData += chunk;
+            });
+            req.on('end', async () => {
+                const { method, url, headers } = req;
+                const body = JSON.parse(requestData || '{}');
+                const mergedHeaders = {
+                    ...axiosOptions.headers,
+                    ...headers,
+                };
+                const mergedAxiosOptions = {
+                    method: method,
+                    url: `${baseUrl}${url}`,
+                    headers: mergedHeaders,
+                    data: body,
+                    ...axiosOptions,
+                };
+                const axiosResponse = await (0, axios_1.default)(mergedAxiosOptions);
+                res.writeHead(axiosResponse.status, axiosResponse.statusText, {
+                    'Content-Type': 'application/json',
+                    ...axiosResponse.headers,
+                });
+                res.end(JSON.stringify(axiosResponse.data));
+            });
         }
         catch (error) {
             console.error('Error forwarding request:', error.message);
-            res.status(500).json({ success: false, error: 'Internal Server Error' });
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: 'Internal Server Error' }));
         }
     };
 }
