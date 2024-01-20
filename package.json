@@ -1,13 +1,13 @@
 {
   "name": "op-express-forwarder",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "",
   "main": "dist/index.js",
   "types": "types/index.d.ts",
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.5",
     "axios": "^1.6.5",
     "typescript": "^5.3.3"
   }

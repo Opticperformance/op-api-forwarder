@@ -1,20 +1,19 @@
-import axios, { AxiosRequestConfig, Method } from 'axios';
-import { Request } from 'express';
+import axios, { AxiosRequestConfig, Method, AxiosHeaders } from 'axios';
 import { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'http';
 
 function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestConfig = {}) {
   return async (req: IncomingMessage | Request, res: ServerResponse) => {
-    const useExpress = req instanceof Request;
+    const bodyAvailable = 'body' in req;
 
     const onEnd = async (requestData?: string) => {
       const { method, url, headers } = req;
 
-      const body = useExpress ? req.body : JSON.parse(requestData || '{}'); // Parse the request body
+      const body = bodyAvailable ? req.body : JSON.parse(requestData || '{}'); // Parse the request body
 
       const mergedHeaders = {
         ...axiosOptions.headers,
         ...headers,
-      };
+      } as AxiosHeaders;
 
       const mergedAxiosOptions: AxiosRequestConfig = {
         method: method as Method,
@@ -35,7 +34,7 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
     }
 
     try {
-      if (useExpress) {
+      if (bodyAvailable) {
         onEnd();
       } else {
         let requestData = '';

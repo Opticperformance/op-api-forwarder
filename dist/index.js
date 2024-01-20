@@ -7,10 +7,10 @@ exports.createForwarder = void 0;
 const axios_1 = __importDefault(require("axios"));
 function createForwarder(baseUrl, axiosOptions = {}) {
     return async (req, res) => {
-        const useExpress = req instanceof Request;
+        const bodyAvailable = 'body' in req;
         const onEnd = async (requestData) => {
             const { method, url, headers } = req;
-            const body = useExpress ? req.body : JSON.parse(requestData || '{}');
+            const body = bodyAvailable ? req.body : JSON.parse(requestData || '{}');
             const mergedHeaders = {
                 ...axiosOptions.headers,
                 ...headers,
@@ -30,7 +30,7 @@ function createForwarder(baseUrl, axiosOptions = {}) {
             res.end(JSON.stringify(axiosResponse.data));
         };
         try {
-            if (useExpress) {
+            if (bodyAvailable) {
                 onEnd();
             }
             else {
