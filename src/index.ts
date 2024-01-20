@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, Method, AxiosHeaders } from 'axios';
 import { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'http';
 
 function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestConfig = {}) {
-  return async (req: IncomingMessage | Request, res: ServerResponse) => {
+  return async (req: IncomingMessage, res: ServerResponse) => {
     const bodyAvailable = 'body' in req;
 
     const onEnd = async (requestData?: string) => {
