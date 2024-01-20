@@ -7,33 +7,42 @@ exports.createForwarder = void 0;
 const axios_1 = __importDefault(require("axios"));
 function createForwarder(baseUrl, axiosOptions = {}) {
     return async (req, res) => {
+        const useExpress = req instanceof Request;
+        const onEnd = async (requestData) => {
+            const { method, url, headers } = req;
+            const body = useExpress ? req.body : JSON.parse(requestData || '{}');
+            const mergedHeaders = {
+                ...axiosOptions.headers,
+                ...headers,
+            };
+            const mergedAxiosOptions = {
+                method: method,
+                url: `${baseUrl}${url}`,
+                headers: mergedHeaders,
+                data: body,
+                ...axiosOptions,
+            };
+            const axiosResponse = await (0, axios_1.default)(mergedAxiosOptions);
+            res.writeHead(axiosResponse.status, axiosResponse.statusText, {
+                'Content-Type': 'application/json',
+                ...axiosResponse.headers,
+            });
+            res.end(JSON.stringify(axiosResponse.data));
+        };
         try {
-            let requestData = '';
-            req.setEncoding('utf8');
-            req.on('data', (chunk) => {
-                requestData += chunk;
-            });
-            req.on('end', async () => {
-                const { method, url, headers } = req;
-                const body = JSON.parse(requestData || '{}');
-                const mergedHeaders = {
-                    ...axiosOptions.headers,
-                    ...headers,
-                };
-                const mergedAxiosOptions = {
-                    method: method,
-                    url: `${baseUrl}${url}`,
-                    headers: mergedHeaders,
-                    data: body,
-                    ...axiosOptions,
-                };
-                const axiosResponse = await (0, axios_1.default)(mergedAxiosOptions);
-                res.writeHead(axiosResponse.status, axiosResponse.statusText, {
-                    'Content-Type': 'application/json',
-                    ...axiosResponse.headers,
+            if (useExpress) {
+                onEnd();
+            }
+            else {
+                let requestData = '';
+                req.setEncoding('utf8');
+                req.on('data', (chunk) => {
+                    requestData += chunk;
                 });
-                res.end(JSON.stringify(axiosResponse.data));
-            });
+                req.on('end', () => {
+                    onEnd(requestData);
+                });
+            }
         }
         catch (error) {
             console.error('Error forwarding request:', error.message);
