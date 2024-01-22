@@ -33,9 +33,22 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
   
         res.end(JSON.stringify(axiosResponse.data));
       } catch (error: any) {
-        console.error('Error forwarding request:', error.message);
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: 'Internal Server Error' }));
+        if (error.response) {
+          const { status, statusText, headers, data } = error.response;
+
+          res.writeHead(status, statusText, {
+            'Content-Type': 'application/json',
+            ...headers,
+          } as OutgoingHttpHeaders);
+
+          res.end(JSON.stringify(data));
+          return;
+        } else {
+          console.error('Error forwarding request:', error.message);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Internal Server Error' }));
+          return;
+        }
       }
     }
 
