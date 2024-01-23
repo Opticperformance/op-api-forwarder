@@ -17,33 +17,34 @@ const axios_1 = __importDefault(require("axios"));
 function createForwarder(baseUrl, axiosOptions = {}) {
     return (req, res) => __awaiter(this, void 0, void 0, function* () {
         const bodyAvailable = 'body' in req;
-        const onEnd = (requestData) => __awaiter(this, void 0, void 0, function* () {
-            const { method, url, headers } = req;
-            const body = bodyAvailable ? req.body : JSON.parse(requestData || '{}');
-            const mergedHeaders = Object.assign(Object.assign({}, axiosOptions.headers), headers);
-            const mergedAxiosOptions = Object.assign({ method: method, url: `${baseUrl}${url}`, headers: mergedHeaders, data: body }, axiosOptions);
-            try {
-                const axiosResponse = yield (0, axios_1.default)(mergedAxiosOptions);
-                res.writeHead(axiosResponse.status, axiosResponse.statusText, Object.assign({ 'Content-Type': 'application/json' }, axiosResponse.headers));
-                res.end(JSON.stringify(axiosResponse.data));
-            }
-            catch (error) {
-                if (error.response) {
-                    const { status, statusText, headers, data } = error.response;
-                    res.writeHead(status, statusText, Object.assign({ 'Content-Type': 'application/json' }, headers));
-                    res.end(JSON.stringify(data));
+        function onBodyAvailable(requestData) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const { method, url, headers } = req;
+                const body = bodyAvailable ? req.body : JSON.parse(requestData || '{}');
+                const mergedHeaders = Object.assign(Object.assign({}, axiosOptions.headers), headers);
+                const mergedAxiosOptions = Object.assign({ method: method, url: `${baseUrl}${url}`, headers: mergedHeaders, data: body }, axiosOptions);
+                try {
+                    const axiosResponse = yield (0, axios_1.default)(mergedAxiosOptions);
+                    res.writeHead(axiosResponse.status, axiosResponse.statusText, Object.assign({ 'Content-Type': 'application/json' }, axiosResponse.headers));
+                    res.end(JSON.stringify(axiosResponse.data));
+                }
+                catch (error) {
+                    if (error.response) {
+                        const { status, statusText, headers, data } = error.response;
+                        res.writeHead(status, statusText, Object.assign({ 'Content-Type': 'application/json' }, headers));
+                        res.end(JSON.stringify(data));
+                    }
+                    else {
+                        console.error('Error forwarding request:', error.message);
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: false, error: 'Internal Server Error' }));
+                    }
                     return;
                 }
-                else {
-                    console.error('Error forwarding request:', error.message);
-                    res.writeHead(500, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: false, error: 'Internal Server Error' }));
-                    return;
-                }
-            }
-        });
+            });
+        }
         if (bodyAvailable) {
-            onEnd();
+            onBodyAvailable();
         }
         else {
             let requestData = '';
@@ -52,7 +53,7 @@ function createForwarder(baseUrl, axiosOptions = {}) {
                 requestData += chunk;
             });
             req.on('end', () => {
-                onEnd(requestData);
+                onBodyAvailable(requestData);
             });
         }
     });

@@ -5,7 +5,7 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
   return async (req: IncomingMessage, res: ServerResponse) => {
     const bodyAvailable = 'body' in req;
 
-    const onEnd = async (requestData?: string) => {
+    async function onBodyAvailable (requestData?: string) {
       const { method, url, headers } = req;
 
       const body = bodyAvailable ? req.body : JSON.parse(requestData || '{}'); // Parse the request body
@@ -42,18 +42,18 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
           } as OutgoingHttpHeaders);
 
           res.end(JSON.stringify(data));
-          return;
         } else {
           console.error('Error forwarding request:', error.message);
           res.writeHead(500, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'Internal Server Error' }));
-          return;
         }
+
+        return;
       }
     }
 
     if (bodyAvailable) {
-      onEnd();
+      onBodyAvailable();
     } else {
       let requestData = '';
       req.setEncoding('utf8');
@@ -63,7 +63,7 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
       });
 
       req.on('end', () => {
-        onEnd(requestData);
+        onBodyAvailable(requestData);
       });
     }
   };
