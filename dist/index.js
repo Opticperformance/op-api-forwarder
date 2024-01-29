@@ -24,7 +24,7 @@ function createForwarder(baseUrl, axiosOptions = {}) {
                 const mergedHeaders = Object.assign(Object.assign({}, axiosOptions.headers), headers);
                 const mergedAxiosOptions = Object.assign({ method: method, url: `${baseUrl}${url}`, headers: mergedHeaders, data: body }, axiosOptions);
                 try {
-                    const axiosResponse = yield (0, axios_1.default)(mergedAxiosOptions);
+                    const axiosResponse = yield axios_1.default.request(mergedAxiosOptions);
                     res.writeHead(axiosResponse.status, axiosResponse.statusText, Object.assign({ 'Content-Type': 'application/json' }, axiosResponse.headers));
                     res.end(JSON.stringify(axiosResponse.data));
                 }

@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, Method, AxiosHeaders } from 'axios';
+import axios, { AxiosRequestConfig, Method, AxiosHeaders, AxiosResponse } from 'axios';
 import { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'http';
 
 function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestConfig = {}) {
@@ -24,7 +24,7 @@ function createForwarder(baseUrl: URL | RequestInfo, axiosOptions: AxiosRequestC
       };
 
       try {
-        const axiosResponse = await axios(mergedAxiosOptions);
+        const axiosResponse: AxiosResponse = await axios.request(mergedAxiosOptions);
 
         res.writeHead(axiosResponse.status, axiosResponse.statusText, {
           'Content-Type': 'application/json',
